@@ -1,19 +1,22 @@
 'use strict';
 
-const bitcoin = require('bitcoin');
+const bitcoindRpc = require('bitcoind-rpc');
 
-let Regex = require('regex'),
-  config = require('config'),
-  spamchannels = config.get('moderation').botspamchannels;
+const config = require('config');
+
+const spamchannels = config.get('moderation').botspamchannels;
 let walletConfig = config.get('lbc').config;
 let paytxfee = config.get('lbc').paytxfee;
-const lbc = new bitcoin.Client(walletConfig);
+const lbc = new bitcoindRpc(walletConfig);
 
 exports.commands = ['tiplbc'];
 exports.tiplbc = {
   usage: '<subcommand>',
   description:
-    '__**LBRY Credit (LBC) Tipper**__\nTransaction Fees: **' + paytxfee + '**\n    **!tiplbc** : Displays This Message\n    **!tiplbc balance** : get your balance\n    **!tiplbc deposit** : get address for your deposits\n    **!tiplbc withdraw <ADDRESS> <AMOUNT>** : withdraw coins to specified address\n    **!tiplbc <@user> <amount>** :mention a user with @ and then the amount to tip them\n    **!tiplbc private <user> <amount>** : put private before Mentioning a user to tip them privately.\n\n    has a default txfee of ' + paytxfee,
+    '__**LBRY Credit (LBC) Tipper**__\nTransaction Fees: **' +
+    paytxfee +
+    '**\n    **!tiplbc** : Displays This Message\n    **!tiplbc balance** : get your balance\n    **!tiplbc deposit** : get address for your deposits\n    **!tiplbc withdraw <ADDRESS> <AMOUNT>** : withdraw coins to specified address\n    **!tiplbc <@user> <amount>** :mention a user with @ and then the amount to tip them\n    **!tiplbc private <user> <amount>** : put private before Mentioning a user to tip them privately.\n\n    has a default txfee of ' +
+    paytxfee,
   process: async function(bot, msg, suffix) {
     let tipper = msg.author.id.replace('!', ''),
       words = msg.content
@@ -24,7 +27,9 @@ exports.tiplbc = {
         }),
       subcommand = words.length >= 2 ? words[1] : 'help',
       helpmsg =
-        '__**LBRY Credit (LBC) Tipper**__\nTransaction Fees: **' + paytxfee + '**\n    **!tiplbc** : Displays This Message\n    **!tiplbc balance** : get your balance\n    **!tiplbc deposit** : get address for your deposits\n    **!tiplbc withdraw <ADDRESS> <AMOUNT>** : withdraw coins to specified address\n    **!tiplbc <@user> <amount>** :mention a user with @ and then the amount to tip them\n    **!tiplbc private <user> <amount>** : put private before Mentioning a user to tip them privately.\n\n    **<> : Replace with appropriate value.**',
+        '__**LBRY Credit (LBC) Tipper**__\nTransaction Fees: **' +
+        paytxfee +
+        '**\n    **!tiplbc** : Displays This Message\n    **!tiplbc balance** : get your balance\n    **!tiplbc deposit** : get address for your deposits\n    **!tiplbc withdraw <ADDRESS> <AMOUNT>** : withdraw coins to specified address\n    **!tiplbc <@user> <amount>** :mention a user with @ and then the amount to tip them\n    **!tiplbc private <user> <amount>** : put private before Mentioning a user to tip them privately.\n\n    **<> : Replace with appropriate value.**',
       channelwarning = 'Please use <#bot-spam> or DMs to talk to bots.';
     switch (subcommand) {
       case 'help':
@@ -37,7 +42,11 @@ exports.tiplbc = {
         privateorSpamChannel(msg, channelwarning, doDeposit, [tipper]);
         break;
       case 'withdraw':
-        privateorSpamChannel(msg, channelwarning, doWithdraw, [tipper, words, helpmsg]);
+        privateorSpamChannel(msg, channelwarning, doWithdraw, [
+          tipper,
+          words,
+          helpmsg
+        ]);
         break;
       default:
         doTip(bot, msg, tipper, words, helpmsg);
@@ -60,24 +69,31 @@ function doHelp(message, helpmsg) {
 function doBalance(message, tipper) {
   lbc.getBalance(tipper, 1, function(err, balance) {
     if (err) {
-      message.reply('Error getting LBRY Credit (LBC) balance.').then(message => message.delete(10000));
+      message.reply('Error getting LBRY Credit (LBC) balance.').then(m => {
+        setTimeout(() => m.delete().catch(() => {}), 10000);
+      });
     } else {
-    message.channel.send({ embed: {
-    title: '**:bank::money_with_wings::moneybag:LBRY Credit (LBC) Balance!:moneybag::money_with_wings::bank:**',
-    color: 1363892,
-    fields: [
-      {
-        name: '__User__',
-        value: '<@' + message.author.id + '>',
-        inline: false
-      },
-      {
-        name: '__Balance__',
-        value: '**' + balance.toString() + '**',
-        inline: false
-      }
-    ]
-  } });
+      message.channel.send({
+        embeds: [
+          {
+            title:
+              '**:bank::money_with_wings::moneybag:LBRY Credit (LBC) Balance!:moneybag::money_with_wings::bank:**',
+            color: 1363892,
+            fields: [
+              {
+                name: '__User__',
+                value: '<@' + message.author.id + '>',
+                inline: false
+              },
+              {
+                name: '__Balance__',
+                value: '**' + balance.toString() + '**',
+                inline: false
+              }
+            ]
+          }
+        ]
+      });
     }
   });
 }
@@ -85,24 +101,33 @@ function doBalance(message, tipper) {
 function doDeposit(message, tipper) {
   getAddress(tipper, function(err, address) {
     if (err) {
-      message.reply('Error getting your LBRY Credit (LBC) deposit address.').then(message => message.delete(10000));
+      message
+        .reply('Error getting your LBRY Credit (LBC) deposit address.')
+        .then(m => {
+          setTimeout(() => m.delete().catch(() => {}), 10000);
+        });
     } else {
-    message.channel.send({ embed: {
-    title: '**:bank::card_index::moneybag:LBRY Credit (LBC) Address!:moneybag::card_index::bank:**',
-    color: 1363892,
-    fields: [
-      {
-        name: '__User__',
-        value: '<@' + message.author.id + '>',
-        inline: false
-      },
-      {
-        name: '__Address__',
-        value: '**' + address + '**',
-        inline: false
-      }
-    ]
-  } });
+      message.channel.send({
+        embeds: [
+          {
+            title:
+              '**:bank::card_index::moneybag:LBRY Credit (LBC) Address!:moneybag::card_index::bank:**',
+            color: 1363892,
+            fields: [
+              {
+                name: '__User__',
+                value: '<@' + message.author.id + '>',
+                inline: false
+              },
+              {
+                name: '__Address__',
+                value: '**' + address + '**',
+                inline: false
+              }
+            ]
+          }
+        ]
+      });
     }
   });
 }
@@ -113,59 +138,76 @@ function doWithdraw(message, tipper, words, helpmsg) {
     return;
   }
 
-  var address = words[2],
+  let address = words[2],
     amount = getValidatedAmount(words[3]);
 
   if (amount === null) {
-    message.reply("I don't know how to withdraw that much LBRY Credit (LBC)...").then(message => message.delete(10000));
+    message
+      .reply("I don't know how to withdraw that much LBRY Credit (LBC)...")
+      .then(m => {
+        setTimeout(() => m.delete().catch(() => {}), 10000);
+      });
     return;
   }
 
   lbc.getBalance(tipper, 1, function(err, balance) {
     if (err) {
-      message.reply('Error getting LBRY Credit (LBC) balance.').then(message => message.delete(10000));
+      message.reply('Error getting LBRY Credit (LBC) balance.').then(m => {
+        setTimeout(() => m.delete().catch(() => {}), 10000);
+      });
     } else {
       if (Number(amount) + Number(paytxfee) > Number(balance)) {
-        message.channel.send('Please leave atleast ' + paytxfee + ' LBRY Credit (LBC) for transaction fees!');
+        message.channel.send(
+          'Please leave atleast ' +
+            paytxfee +
+            ' LBRY Credit (LBC) for transaction fees!'
+        );
         return;
       }
       lbc.sendFrom(tipper, address, Number(amount), function(err, txId) {
         if (err) {
-          message.reply(err.message).then(message => message.delete(10000));
+          message.reply(err.message).then(m => {
+            setTimeout(() => m.delete().catch(() => {}), 10000);
+          });
         } else {
-        message.channel.send({embed:{
-        title: '**:outbox_tray::money_with_wings::moneybag:LBRY Credit (LBC) Transaction Completed!:moneybag::money_with_wings::outbox_tray:**',
-        color: 1363892,
-        fields: [
-          {
-            name: '__Sender__',
-            value: '<@' + message.author.id + '>',
-            inline: true
-          },
-          {
-            name: '__Receiver__',
-            value: '**' + address + '**\n' + addyLink(address),
-            inline: true
-          },
-          {
-            name: '__txid__',
-            value: '**' + txId + '**\n' + txLink(txId),
-            inline: false
-          },
-          {
-            name: '__Amount__',
-            value: '**' + amount.toString() + '**',
-            inline: true
-          },
-          {
-            name: '__Fee__',
-            value: '**' + paytxfee.toString() + '**',
-            inline: true
-          }
-        ]
-      }});
-      }
-    });
+          message.channel.send({
+            embeds: [
+              {
+                title:
+                  '**:outbox_tray::money_with_wings::moneybag:LBRY Credit (LBC) Transaction Completed!:moneybag::money_with_wings::outbox_tray:**',
+                color: 1363892,
+                fields: [
+                  {
+                    name: '__Sender__',
+                    value: '<@' + message.author.id + '>',
+                    inline: true
+                  },
+                  {
+                    name: '__Receiver__',
+                    value: '**' + address + '**\n' + addyLink(address),
+                    inline: true
+                  },
+                  {
+                    name: '__txid__',
+                    value: '**' + txId + '**\n' + txLink(txId),
+                    inline: false
+                  },
+                  {
+                    name: '__Amount__',
+                    value: '**' + amount.toString() + '**',
+                    inline: true
+                  },
+                  {
+                    name: '__Fee__',
+                    value: '**' + paytxfee.toString() + '**',
+                    inline: true
+                  }
+                ]
+              }
+            ]
+          });
+        }
+      });
     }
   });
 }
@@ -175,8 +217,8 @@ function doTip(bot, message, tipper, words, helpmsg) {
     doHelp(message, helpmsg);
     return;
   }
-  var prv = false;
-  var amountOffset = 2;
+  let prv = false;
+  let amountOffset = 2;
   if (words.length >= 4 && words[1] === 'private') {
     prv = true;
     amountOffset = 3;
@@ -185,29 +227,52 @@ function doTip(bot, message, tipper, words, helpmsg) {
   let amount = getValidatedAmount(words[amountOffset]);
 
   if (amount === null) {
-    message.reply("I don't know how to tip that much LBRY Credit (LBC)...").then(message => message.delete(10000));
+    message
+      .reply("I don't know how to tip that much LBRY Credit (LBC)...")
+      .then(m => {
+        setTimeout(() => m.delete().catch(() => {}), 10000);
+      });
     return;
   }
 
   lbc.getBalance(tipper, 1, function(err, balance) {
     if (err) {
-      message.reply('Error getting LBRY Credit (LBC) balance.').then(message => message.delete(10000));
+      message.reply('Error getting LBRY Credit (LBC) balance.').then(m => {
+        setTimeout(() => m.delete().catch(() => {}), 10000);
+      });
     } else {
       if (Number(amount) + Number(paytxfee) > Number(balance)) {
-        message.channel.send('Please leave atleast ' + paytxfee + ' LBRY Credit (LBC) for transaction fees!');
+        message.channel.send(
+          'Please leave atleast ' +
+            paytxfee +
+            ' LBRY Credit (LBC) for transaction fees!'
+        );
         return;
       }
 
-      if (!message.mentions.users.first()){
-           message
-            .reply('Sorry, I could not find a user in your tip...')
-            .then(message => message.delete(10000));
-            return;
-          }
+      if (!message.mentions.users.first()) {
+        message
+          .reply('Sorry, I could not find a user in your tip...')
+          .then(m => {
+            setTimeout(() => m.delete().catch(() => {}), 10000);
+          });
+        return;
+      }
       if (message.mentions.users.first().id) {
-        sendLBC(bot, message, tipper, message.mentions.users.first().id.replace('!', ''), amount, prv);
+        sendLBC(
+          bot,
+          message,
+          tipper,
+          message.mentions.users.first().id.replace('!', ''),
+          amount,
+          prv
+        );
       } else {
-        message.reply('Sorry, I could not find a user in your tip...').then(message => message.delete(10000));
+        message
+          .reply('Sorry, I could not find a user in your tip...')
+          .then(m => {
+            setTimeout(() => m.delete().catch(() => {}), 10000);
+          });
       }
     }
   });
@@ -216,16 +281,26 @@ function doTip(bot, message, tipper, words, helpmsg) {
 function sendLBC(bot, message, tipper, recipient, amount, privacyFlag) {
   getAddress(recipient.toString(), function(err, address) {
     if (err) {
-      message.reply(err.message).then(message => message.delete(10000));
+      message.reply(err.message).then(m => {
+        setTimeout(() => m.delete().catch(() => {}), 10000);
+      });
     } else {
-          lbc.sendFrom(tipper, address, Number(amount), 1, null, null, function(err, txId) {
-              if (err) {
-                message.reply(err.message).then(message => message.delete(10000));
-              } else {
-                if (privacyFlag) {
-                  let userProfile = message.guild.members.find('id', recipient);
-                  userProfile.user.send({ embed: {
-                  title: '**:money_with_wings::moneybag:LBRY Credit (LBC) Transaction Completed!:moneybag::money_with_wings:**',
+      lbc.sendFrom(tipper, address, Number(amount), 1, null, null, function(
+        err,
+        txId
+      ) {
+        if (err) {
+          message.reply(err.message).then(m => {
+            setTimeout(() => m.delete().catch(() => {}), 10000);
+          });
+        } else {
+          if (privacyFlag) {
+            let userProfile = message.guild.members.cache.get(recipient);
+            userProfile.user.send({
+              embeds: [
+                {
+                  title:
+                    '**:money_with_wings::moneybag:LBRY Credit (LBC) Transaction Completed!:moneybag::money_with_wings:**',
                   color: 1363892,
                   fields: [
                     {
@@ -254,47 +329,14 @@ function sendLBC(bot, message, tipper, recipient, amount, privacyFlag) {
                       inline: true
                     }
                   ]
-                } });
-                message.author.send({ embed: {
-                title: '**:money_with_wings::moneybag:LBRY Credit (LBC) Transaction Completed!:moneybag::money_with_wings:**',
-                color: 1363892,
-                fields: [
-                  {
-                    name: '__Sender__',
-                    value: '<@' + message.author.id + '>',
-                    inline: true
-                  },
-                  {
-                    name: '__Receiver__',
-                    value: '<@' + recipient + '>',
-                    inline: true
-                  },
-                  {
-                    name: '__txid__',
-                    value: '**' + txId + '**\n' + txLink(txId),
-                    inline: false
-                  },
-                  {
-                    name: '__Amount__',
-                    value: '**' + amount.toString() + '**',
-                    inline: true
-                  },
-                  {
-                    name: '__Fee__',
-                    value: '**' + paytxfee.toString() + '**',
-                    inline: true
-                  }
-
-                ]
-              } });
-                  if (
-                    message.content.startsWith('!tiplbc private ')
-                  ) {
-                    message.delete(1000); //Supposed to delete message
-                  }
-                } else {
-                  message.channel.send({ embed: {
-                  title: '**:money_with_wings::moneybag:LBRY Credit (LBC) Transaction Completed!:moneybag::money_with_wings:**',
+                }
+              ]
+            });
+            message.author.send({
+              embeds: [
+                {
+                  title:
+                    '**:money_with_wings::moneybag:LBRY Credit (LBC) Transaction Completed!:moneybag::money_with_wings:**',
                   color: 1363892,
                   fields: [
                     {
@@ -323,10 +365,52 @@ function sendLBC(bot, message, tipper, recipient, amount, privacyFlag) {
                       inline: true
                     }
                   ]
-                } });
                 }
-              }
+              ]
             });
+            if (message.content.startsWith('!tiplbc private ')) {
+              setTimeout(() => message.delete().catch(() => {}), 1000); //Supposed to delete message
+            }
+          } else {
+            message.channel.send({
+              embeds: [
+                {
+                  title:
+                    '**:money_with_wings::moneybag:LBRY Credit (LBC) Transaction Completed!:moneybag::money_with_wings:**',
+                  color: 1363892,
+                  fields: [
+                    {
+                      name: '__Sender__',
+                      value: '<@' + message.author.id + '>',
+                      inline: true
+                    },
+                    {
+                      name: '__Receiver__',
+                      value: '<@' + recipient + '>',
+                      inline: true
+                    },
+                    {
+                      name: '__txid__',
+                      value: '**' + txId + '**\n' + txLink(txId),
+                      inline: false
+                    },
+                    {
+                      name: '__Amount__',
+                      value: '**' + amount.toString() + '**',
+                      inline: true
+                    },
+                    {
+                      name: '__Fee__',
+                      value: '**' + paytxfee.toString() + '**',
+                      inline: true
+                    }
+                  ]
+                }
+              ]
+            });
+          }
+        }
+      });
     }
   });
 }
@@ -359,8 +443,7 @@ function inPrivateorSpamChannel(msg) {
 
 function isSpam(msg) {
   return spamchannels.includes(msg.channel.id);
-};
-
+}
 
 function getValidatedAmount(amount) {
   amount = amount.trim();

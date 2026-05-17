@@ -1,19 +1,22 @@
 'use strict';
 
-const bitcoin = require('bitcoin');
+const bitcoindRpc = require('bitcoind-rpc');
 
-let Regex = require('regex'),
-  config = require('config'),
-  spamchannels = config.get('moderation').botspamchannels;
+const config = require('config');
+
+const spamchannels = config.get('moderation').botspamchannels;
 let walletConfig = config.get('doge').config;
 let paytxfee = config.get('doge').paytxfee;
-const doge = new bitcoin.Client(walletConfig);
+const doge = new bitcoindRpc(walletConfig);
 
 exports.commands = ['tipdoge'];
 exports.tipdoge = {
   usage: '<subcommand>',
   description:
-    '__**Dogecoin (DOGE) Tipper**__\nTransaction Fees: **' + paytxfee + '**\n    **!tipdoge** : Displays This Message\n    **!tipdoge balance** : get your balance\n    **!tipdoge deposit** : get address for your deposits\n    **!tipdoge withdraw <ADDRESS> <AMOUNT>** : withdraw coins to specified address\n    **!tipdoge <@user> <amount>** :mention a user with @ and then the amount to tip them\n    **!tipdoge private <user> <amount>** : put private before Mentioning a user to tip them privately.\n\n    has a default txfee of ' + paytxfee,
+    '__**Dogecoin (DOGE) Tipper**__\nTransaction Fees: **' +
+    paytxfee +
+    '**\n    **!tipdoge** : Displays This Message\n    **!tipdoge balance** : get your balance\n    **!tipdoge deposit** : get address for your deposits\n    **!tipdoge withdraw <ADDRESS> <AMOUNT>** : withdraw coins to specified address\n    **!tipdoge <@user> <amount>** :mention a user with @ and then the amount to tip them\n    **!tipdoge private <user> <amount>** : put private before Mentioning a user to tip them privately.\n\n    has a default txfee of ' +
+    paytxfee,
   process: async function(bot, msg, suffix) {
     let tipper = msg.author.id.replace('!', ''),
       words = msg.content
@@ -24,7 +27,9 @@ exports.tipdoge = {
         }),
       subcommand = words.length >= 2 ? words[1] : 'help',
       helpmsg =
-        '__**Dogecoin (DOGE) Tipper**__\nTransaction Fees: **' + paytxfee + '**\n    **!tipdoge** : Displays This Message\n    **!tipdoge balance** : get your balance\n    **!tipdoge deposit** : get address for your deposits\n    **!tipdoge withdraw <ADDRESS> <AMOUNT>** : withdraw coins to specified address\n    **!tipdoge <@user> <amount>** :mention a user with @ and then the amount to tip them\n    **!tipdoge private <user> <amount>** : put private before Mentioning a user to tip them privately.\n\n    **<> : Replace with appropriate value.**',
+        '__**Dogecoin (DOGE) Tipper**__\nTransaction Fees: **' +
+        paytxfee +
+        '**\n    **!tipdoge** : Displays This Message\n    **!tipdoge balance** : get your balance\n    **!tipdoge deposit** : get address for your deposits\n    **!tipdoge withdraw <ADDRESS> <AMOUNT>** : withdraw coins to specified address\n    **!tipdoge <@user> <amount>** :mention a user with @ and then the amount to tip them\n    **!tipdoge private <user> <amount>** : put private before Mentioning a user to tip them privately.\n\n    **<> : Replace with appropriate value.**',
       channelwarning = 'Please use <#bot-spam> or DMs to talk to bots.';
     switch (subcommand) {
       case 'help':
@@ -37,7 +42,11 @@ exports.tipdoge = {
         privateorSpamChannel(msg, channelwarning, doDeposit, [tipper]);
         break;
       case 'withdraw':
-        privateorSpamChannel(msg, channelwarning, doWithdraw, [tipper, words, helpmsg]);
+        privateorSpamChannel(msg, channelwarning, doWithdraw, [
+          tipper,
+          words,
+          helpmsg
+        ]);
         break;
       default:
         doTip(bot, msg, tipper, words, helpmsg);
@@ -60,24 +69,31 @@ function doHelp(message, helpmsg) {
 function doBalance(message, tipper) {
   doge.getBalance(tipper, 1, function(err, balance) {
     if (err) {
-      message.reply('Error getting Dogecoin (DOGE) balance.').then(message => message.delete(10000));
+      message.reply('Error getting Dogecoin (DOGE) balance.').then(m => {
+        setTimeout(() => m.delete().catch(() => {}), 10000);
+      });
     } else {
-    message.channel.send({ embed: {
-    title: '**:bank::money_with_wings::moneybag:Dogecoin (DOGE) Balance!:moneybag::money_with_wings::bank:**',
-    color: 1363892,
-    fields: [
-      {
-        name: '__User__',
-        value: '<@' + message.author.id + '>',
-        inline: false
-      },
-      {
-        name: '__Balance__',
-        value: '**' + balance.toString() + '**',
-        inline: false
-      }
-    ]
-  } });
+      message.channel.send({
+        embeds: [
+          {
+            title:
+              '**:bank::money_with_wings::moneybag:Dogecoin (DOGE) Balance!:moneybag::money_with_wings::bank:**',
+            color: 1363892,
+            fields: [
+              {
+                name: '__User__',
+                value: '<@' + message.author.id + '>',
+                inline: false
+              },
+              {
+                name: '__Balance__',
+                value: '**' + balance.toString() + '**',
+                inline: false
+              }
+            ]
+          }
+        ]
+      });
     }
   });
 }
@@ -85,24 +101,33 @@ function doBalance(message, tipper) {
 function doDeposit(message, tipper) {
   getAddress(tipper, function(err, address) {
     if (err) {
-      message.reply('Error getting your Dogecoin (DOGE) deposit address.').then(message => message.delete(10000));
+      message
+        .reply('Error getting your Dogecoin (DOGE) deposit address.')
+        .then(m => {
+          setTimeout(() => m.delete().catch(() => {}), 10000);
+        });
     } else {
-    message.channel.send({ embed: {
-    title: '**:bank::card_index::moneybag:Dogecoin (DOGE) Address!:moneybag::card_index::bank:**',
-    color: 1363892,
-    fields: [
-      {
-        name: '__User__',
-        value: '<@' + message.author.id + '>',
-        inline: false
-      },
-      {
-        name: '__Address__',
-        value: '**' + address + '**',
-        inline: false
-      }
-    ]
-  } });
+      message.channel.send({
+        embeds: [
+          {
+            title:
+              '**:bank::card_index::moneybag:Dogecoin (DOGE) Address!:moneybag::card_index::bank:**',
+            color: 1363892,
+            fields: [
+              {
+                name: '__User__',
+                value: '<@' + message.author.id + '>',
+                inline: false
+              },
+              {
+                name: '__Address__',
+                value: '**' + address + '**',
+                inline: false
+              }
+            ]
+          }
+        ]
+      });
     }
   });
 }
@@ -113,59 +138,76 @@ function doWithdraw(message, tipper, words, helpmsg) {
     return;
   }
 
-  var address = words[2],
+  let address = words[2],
     amount = getValidatedAmount(words[3]);
 
   if (amount === null) {
-    message.reply("I don't know how to withdraw that much Dogecoin (DOGE)...").then(message => message.delete(10000));
+    message
+      .reply("I don't know how to withdraw that much Dogecoin (DOGE)...")
+      .then(m => {
+        setTimeout(() => m.delete().catch(() => {}), 10000);
+      });
     return;
   }
 
   doge.getBalance(tipper, 1, function(err, balance) {
     if (err) {
-      message.reply('Error getting Dogecoin (DOGE) balance.').then(message => message.delete(10000));
+      message.reply('Error getting Dogecoin (DOGE) balance.').then(m => {
+        setTimeout(() => m.delete().catch(() => {}), 10000);
+      });
     } else {
       if (Number(amount) + Number(paytxfee) > Number(balance)) {
-        message.channel.send('Please leave atleast ' + paytxfee + ' Dogecoin (DOGE) for transaction fees!');
+        message.channel.send(
+          'Please leave atleast ' +
+            paytxfee +
+            ' Dogecoin (DOGE) for transaction fees!'
+        );
         return;
       }
       doge.sendFrom(tipper, address, Number(amount), function(err, txId) {
         if (err) {
-          message.reply(err.message).then(message => message.delete(10000));
+          message.reply(err.message).then(m => {
+            setTimeout(() => m.delete().catch(() => {}), 10000);
+          });
         } else {
-        message.channel.send({embed:{
-        title: '**:outbox_tray::money_with_wings::moneybag:Dogecoin (DOGE) Transaction Completed!:moneybag::money_with_wings::outbox_tray:**',
-        color: 1363892,
-        fields: [
-          {
-            name: '__Sender__',
-            value: '<@' + message.author.id + '>',
-            inline: true
-          },
-          {
-            name: '__Receiver__',
-            value: '**' + address + '**\n' + addyLink(address),
-            inline: true
-          },
-          {
-            name: '__txid__',
-            value: '**' + txId + '**\n' + txLink(txId),
-            inline: false
-          },
-          {
-            name: '__Amount__',
-            value: '**' + amount.toString() + '**',
-            inline: true
-          },
-          {
-            name: '__Fee__',
-            value: '**' + paytxfee.toString() + '**',
-            inline: true
-          }
-        ]
-      }});
-      }
-    });
+          message.channel.send({
+            embeds: [
+              {
+                title:
+                  '**:outbox_tray::money_with_wings::moneybag:Dogecoin (DOGE) Transaction Completed!:moneybag::money_with_wings::outbox_tray:**',
+                color: 1363892,
+                fields: [
+                  {
+                    name: '__Sender__',
+                    value: '<@' + message.author.id + '>',
+                    inline: true
+                  },
+                  {
+                    name: '__Receiver__',
+                    value: '**' + address + '**\n' + addyLink(address),
+                    inline: true
+                  },
+                  {
+                    name: '__txid__',
+                    value: '**' + txId + '**\n' + txLink(txId),
+                    inline: false
+                  },
+                  {
+                    name: '__Amount__',
+                    value: '**' + amount.toString() + '**',
+                    inline: true
+                  },
+                  {
+                    name: '__Fee__',
+                    value: '**' + paytxfee.toString() + '**',
+                    inline: true
+                  }
+                ]
+              }
+            ]
+          });
+        }
+      });
     }
   });
 }
@@ -175,8 +217,8 @@ function doTip(bot, message, tipper, words, helpmsg) {
     doHelp(message, helpmsg);
     return;
   }
-  var prv = false;
-  var amountOffset = 2;
+  let prv = false;
+  let amountOffset = 2;
   if (words.length >= 4 && words[1] === 'private') {
     prv = true;
     amountOffset = 3;
@@ -185,29 +227,52 @@ function doTip(bot, message, tipper, words, helpmsg) {
   let amount = getValidatedAmount(words[amountOffset]);
 
   if (amount === null) {
-    message.reply("I don't know how to tip that much Dogecoin (DOGE)...").then(message => message.delete(10000));
+    message
+      .reply("I don't know how to tip that much Dogecoin (DOGE)...")
+      .then(m => {
+        setTimeout(() => m.delete().catch(() => {}), 10000);
+      });
     return;
   }
 
   doge.getBalance(tipper, 1, function(err, balance) {
     if (err) {
-      message.reply('Error getting Dogecoin (DOGE) balance.').then(message => message.delete(10000));
+      message.reply('Error getting Dogecoin (DOGE) balance.').then(m => {
+        setTimeout(() => m.delete().catch(() => {}), 10000);
+      });
     } else {
       if (Number(amount) + Number(paytxfee) > Number(balance)) {
-        message.channel.send('Please leave atleast ' + paytxfee + ' Dogecoin (DOGE) for transaction fees!');
+        message.channel.send(
+          'Please leave atleast ' +
+            paytxfee +
+            ' Dogecoin (DOGE) for transaction fees!'
+        );
         return;
       }
 
-      if (!message.mentions.users.first()){
-           message
-            .reply('Sorry, I could not find a user in your tip...')
-            .then(message => message.delete(10000));
-            return;
-          }
+      if (!message.mentions.users.first()) {
+        message
+          .reply('Sorry, I could not find a user in your tip...')
+          .then(m => {
+            setTimeout(() => m.delete().catch(() => {}), 10000);
+          });
+        return;
+      }
       if (message.mentions.users.first().id) {
-        sendDOGE(bot, message, tipper, message.mentions.users.first().id.replace('!', ''), amount, prv);
+        sendDOGE(
+          bot,
+          message,
+          tipper,
+          message.mentions.users.first().id.replace('!', ''),
+          amount,
+          prv
+        );
       } else {
-        message.reply('Sorry, I could not find a user in your tip...').then(message => message.delete(10000));
+        message
+          .reply('Sorry, I could not find a user in your tip...')
+          .then(m => {
+            setTimeout(() => m.delete().catch(() => {}), 10000);
+          });
       }
     }
   });
@@ -216,16 +281,26 @@ function doTip(bot, message, tipper, words, helpmsg) {
 function sendDOGE(bot, message, tipper, recipient, amount, privacyFlag) {
   getAddress(recipient.toString(), function(err, address) {
     if (err) {
-      message.reply(err.message).then(message => message.delete(10000));
+      message.reply(err.message).then(m => {
+        setTimeout(() => m.delete().catch(() => {}), 10000);
+      });
     } else {
-          doge.sendFrom(tipper, address, Number(amount), 1, null, null, function(err, txId) {
-              if (err) {
-                message.reply(err.message).then(message => message.delete(10000));
-              } else {
-                if (privacyFlag) {
-                  let userProfile = message.guild.members.find('id', recipient);
-                  userProfile.user.send({ embed: {
-                  title: '**:money_with_wings::moneybag:Dogecoin (DOGE) Transaction Completed!:moneybag::money_with_wings:**',
+      doge.sendFrom(tipper, address, Number(amount), 1, null, null, function(
+        err,
+        txId
+      ) {
+        if (err) {
+          message.reply(err.message).then(m => {
+            setTimeout(() => m.delete().catch(() => {}), 10000);
+          });
+        } else {
+          if (privacyFlag) {
+            let userProfile = message.guild.members.cache.get(recipient);
+            userProfile.user.send({
+              embeds: [
+                {
+                  title:
+                    '**:money_with_wings::moneybag:Dogecoin (DOGE) Transaction Completed!:moneybag::money_with_wings:**',
                   color: 1363892,
                   fields: [
                     {
@@ -254,47 +329,14 @@ function sendDOGE(bot, message, tipper, recipient, amount, privacyFlag) {
                       inline: true
                     }
                   ]
-                } });
-                message.author.send({ embed: {
-                title: '**:money_with_wings::moneybag:Dogecoin (DOGE) Transaction Completed!:moneybag::money_with_wings:**',
-                color: 1363892,
-                fields: [
-                  {
-                    name: '__Sender__',
-                    value: '<@' + message.author.id + '>',
-                    inline: true
-                  },
-                  {
-                    name: '__Receiver__',
-                    value: '<@' + recipient + '>',
-                    inline: true
-                  },
-                  {
-                    name: '__txid__',
-                    value: '**' + txId + '**\n' + txLink(txId),
-                    inline: false
-                  },
-                  {
-                    name: '__Amount__',
-                    value: '**' + amount.toString() + '**',
-                    inline: true
-                  },
-                  {
-                    name: '__Fee__',
-                    value: '**' + paytxfee.toString() + '**',
-                    inline: true
-                  }
-
-                ]
-              } });
-                  if (
-                    message.content.startsWith('!tipdoge private ')
-                  ) {
-                    message.delete(1000); //Supposed to delete message
-                  }
-                } else {
-                  message.channel.send({ embed: {
-                  title: '**:money_with_wings::moneybag:Dogecoin (DOGE) Transaction Completed!:moneybag::money_with_wings:**',
+                }
+              ]
+            });
+            message.author.send({
+              embeds: [
+                {
+                  title:
+                    '**:money_with_wings::moneybag:Dogecoin (DOGE) Transaction Completed!:moneybag::money_with_wings:**',
                   color: 1363892,
                   fields: [
                     {
@@ -323,10 +365,52 @@ function sendDOGE(bot, message, tipper, recipient, amount, privacyFlag) {
                       inline: true
                     }
                   ]
-                } });
                 }
-              }
+              ]
             });
+            if (message.content.startsWith('!tipdoge private ')) {
+              setTimeout(() => message.delete().catch(() => {}), 1000); //Supposed to delete message
+            }
+          } else {
+            message.channel.send({
+              embeds: [
+                {
+                  title:
+                    '**:money_with_wings::moneybag:Dogecoin (DOGE) Transaction Completed!:moneybag::money_with_wings:**',
+                  color: 1363892,
+                  fields: [
+                    {
+                      name: '__Sender__',
+                      value: '<@' + message.author.id + '>',
+                      inline: true
+                    },
+                    {
+                      name: '__Receiver__',
+                      value: '<@' + recipient + '>',
+                      inline: true
+                    },
+                    {
+                      name: '__txid__',
+                      value: '**' + txId + '**\n' + txLink(txId),
+                      inline: false
+                    },
+                    {
+                      name: '__Amount__',
+                      value: '**' + amount.toString() + '**',
+                      inline: true
+                    },
+                    {
+                      name: '__Fee__',
+                      value: '**' + paytxfee.toString() + '**',
+                      inline: true
+                    }
+                  ]
+                }
+              ]
+            });
+          }
+        }
+      });
     }
   });
 }
@@ -359,8 +443,7 @@ function inPrivateorSpamChannel(msg) {
 
 function isSpam(msg) {
   return spamchannels.includes(msg.channel.id);
-};
-
+}
 
 function getValidatedAmount(amount) {
   amount = amount.trim();

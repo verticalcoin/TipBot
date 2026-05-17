@@ -1,7 +1,7 @@
 'use strict';
 
 // Load up libraries
-const Discord = require('discord.js');
+const { Client, GatewayIntentBits, Partials, ActivityType } = require('discord.js');
 let moment = require('moment-timezone');
 // Load config!
 let config = require('config');
@@ -25,7 +25,7 @@ try {
 }
 var commands = {};
 
-var bot = new Discord.Client();
+var bot = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.DirectMessages], partials: [Partials.Channel] });
 
 bot.on('ready', function() {
   var time = moment()
@@ -39,12 +39,10 @@ bot.on('ready', function() {
       '] ' +
       bot.user.username +
       'Logged in! Serving in ' +
-      bot.guilds.array().length +
+      bot.guilds.cache.size +
       ' servers'
   );
-  bot.channels
-    .get(logChannel)
-    .send(
+  bot.channels.cache.get(logChannel)?.send(
       '[' +
         time +
         ' PST][' +
@@ -52,7 +50,7 @@ bot.on('ready', function() {
         '] ' +
         bot.user.username +
         'Logged in! Serving in ' +
-        bot.guilds.array().length +
+        bot.guilds.cache.size +
         ' servers'
     );
   require('./plugins.js').init();
@@ -65,9 +63,7 @@ bot.on('ready', function() {
       config.prefix +
       'tiphelp in Discord for a commands list.'
   );
-  bot.channels
-    .get(logChannel)
-    .send(
+  bot.channels.cache.get(logChannel)?.send(
       '[' +
         time +
         ' PST][' +
@@ -76,13 +72,13 @@ bot.on('ready', function() {
         config.prefix +
         'tiphelp in Discord for a commands list.'
     );
-  bot.user.setActivity(config.prefix + 'Intialized!');
+  bot.user.setActivity(config.prefix + 'Intialized!', { type: ActivityType.Playing });
   var text = ['tiprvn', 'tipdoge', 'tiplbc', 'tipufo', 'tipproton', 'tippxc', 'tipftc', 'tiphelp'];
   var counter = 0;
   setInterval(change, 10000);
 
   function change() {
-    bot.user.setActivity(config.prefix + text[counter]);
+    bot.user.setActivity(config.prefix + text[counter], { type: ActivityType.Playing });
     counter++;
     if (counter >= text.length) {
       counter = 0;
@@ -95,9 +91,7 @@ process.on('uncaughtException', err => {
     .tz('America/Los_Angeles')
     .format('MM-DD-YYYY hh:mm a');
   console.log('[' + time + ' PST][' + pm2Name + '] uncaughtException: ' + err);
-  bot.channels
-    .get(logChannel)
-    .send('[' + time + ' PST][' + pm2Name + '] uncaughtException: ' + err);
+  bot.channels.cache.get(logChannel)?.send('[' + time + ' PST][' + pm2Name + '] uncaughtException: ' + err);
   process.exit(1); //exit node.js with an error
 });
 
@@ -106,9 +100,7 @@ process.on('unhandledRejection', err => {
     .tz('America/Los_Angeles')
     .format('MM-DD-YYYY hh:mm a');
   console.log('[' + time + ' PST][' + pm2Name + '] unhandledRejection: ' + err);
-  bot.channels
-    .get(logChannel)
-    .send('[' + time + ' PST][' + pm2Name + '] unhandledRejection: ' + err);
+  bot.channels.cache.get(logChannel)?.send('[' + time + ' PST][' + pm2Name + '] unhandledRejection: ' + err);
   process.exit(1); //exit node.js with an error
 });
 
@@ -133,9 +125,9 @@ function checkMessageForCommand(msg, isEdit) {
   if (msg.author.id != bot.user.id && msg.content.startsWith(config.prefix)) {
     //check if user is Online
     if (
-      !msg.author.presence.status ||
-      msg.author.presence.status == 'offline' ||
-      msg.author.presence.status == 'invisible'
+      /* !msg.author.presence?.status || */
+      /* msg.author.presence?.status == 'offline' || */
+      false
     ) {
       msg.author
         .send('Please set your Discord Presence to Online to talk to the bot!')
@@ -157,11 +149,11 @@ function checkMessageForCommand(msg, isEdit) {
     var suffix = msg.content.substring(
       cmdTxt.length + config.prefix.length + 1
     ); //add one for the ! and one for the space
-    if (msg.isMentioned(bot.user)) {
+    if (msg.mentions.has(bot.user)) {
       try {
         cmdTxt = msg.content.split(' ')[1];
         suffix = msg.content.substring(
-          bot.user.mention().length + cmdTxt.length + config.prefix.length + 1
+          `<@${bot.user.id}>`.length + cmdTxt.length + config.prefix.length + 1
         );
       } catch (e) {
         //no command
@@ -207,14 +199,14 @@ function checkMessageForCommand(msg, isEdit) {
       return;
     }
 
-    if (msg.author != bot.user && msg.isMentioned(bot.user)) {
+    if (msg.author != bot.user && msg.mentions.has(bot.user)) {
       msg.channel.send('yes?'); //using a mention here can lead to looping
     } else {
     }
   }
 }
 
-bot.on('message', msg => checkMessageForCommand(msg, false));
+bot.on('messageCreate', msg => checkMessageForCommand(msg, false));
 
 exports.addCommand = function(commandName, commandObject) {
   try {
