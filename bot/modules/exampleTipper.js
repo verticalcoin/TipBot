@@ -235,7 +235,7 @@ function sendLTC(bot, message, tipper, recipient, amount, privacyFlag) {
                 message.reply(err.message).then(message => message.delete(10000));
               } else {
                 if (privacyFlag) {
-                  let userProfile = message.guild.members.find('id', recipient);
+                  let userProfile = message.guild.members.get(recipient) // ⚡ Bolt: O(1) direct ID lookup vs O(N) linear search;
                   userProfile.user.send({ embed: {
                   title: '**:money_with_wings::moneybag:Litecoin (LTC) Transaction Completed!:moneybag::money_with_wings:**',
                   color: 1363892,

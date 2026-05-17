@@ -39,7 +39,7 @@ bot.on('ready', function() {
       '] ' +
       bot.user.username +
       'Logged in! Serving in ' +
-      bot.guilds.array().length +
+      bot.guilds.size + // ⚡ Bolt: O(1) property lookup vs O(N) array creation
       ' servers'
   );
   bot.channels
@@ -52,7 +52,7 @@ bot.on('ready', function() {
         '] ' +
         bot.user.username +
         'Logged in! Serving in ' +
-        bot.guilds.array().length +
+        bot.guilds.size + // ⚡ Bolt: O(1) property lookup vs O(N) array creation
         ' servers'
     );
   require('./plugins.js').init();
