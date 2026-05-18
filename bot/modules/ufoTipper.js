@@ -17,12 +17,12 @@ exports.tipufo = {
     paytxfee +
     '**\n    **!tipufo** : Displays This Message\n    **!tipufo balance** : get your balance\n    **!tipufo deposit** : get address for your deposits\n    **!tipufo withdraw <ADDRESS> <AMOUNT>** : withdraw coins to specified address\n    **!tipufo <@user> <amount>** :mention a user with @ and then the amount to tip them\n    **!tipufo private <user> <amount>** : put private before Mentioning a user to tip them privately.\n\n    has a default txfee of ' +
     paytxfee,
-  process: async function (bot, msg, suffix) {
+  process: async function(bot, msg, suffix) {
     let tipper = msg.author.id.replace('!', ''),
       words = msg.content
         .trim()
         .split(' ')
-        .filter(function (n) {
+        .filter(function(n) {
           return n !== '';
         }),
       subcommand = words.length >= 2 ? words[1] : 'help',
@@ -45,13 +45,13 @@ exports.tipufo = {
         privateorSpamChannel(msg, channelwarning, doWithdraw, [
           tipper,
           words,
-          helpmsg,
+          helpmsg
         ]);
         break;
       default:
         doTip(bot, msg, tipper, words, helpmsg);
     }
-  },
+  }
 };
 
 function privateorSpamChannel(message, wrongchannelmsg, fn, args) {
@@ -67,11 +67,11 @@ function doHelp(message, helpmsg) {
 }
 
 function doBalance(message, tipper) {
-  ufo.getBalance(tipper, 1, function (err, balance) {
+  ufo.getBalance(tipper, 1, function(err, balance) {
     if (err) {
       message
         .reply('Error getting Uniform Fiscal Object (UFO) balance.')
-        .then((message) => message.delete(10000));
+        .then(message => message.delete(10000));
     } else {
       message.channel.send({
         embed: {
@@ -82,28 +82,28 @@ function doBalance(message, tipper) {
             {
               name: '__User__',
               value: '<@' + message.author.id + '>',
-              inline: false,
+              inline: false
             },
             {
               name: '__Balance__',
               value: '**' + balance.toString() + '**',
-              inline: false,
-            },
-          ],
-        },
+              inline: false
+            }
+          ]
+        }
       });
     }
   });
 }
 
 function doDeposit(message, tipper) {
-  getAddress(tipper, function (err, address) {
+  getAddress(tipper, function(err, address) {
     if (err) {
       message
         .reply(
-          'Error getting your Uniform Fiscal Object (UFO) deposit address.',
+          'Error getting your Uniform Fiscal Object (UFO) deposit address.'
         )
-        .then((message) => message.delete(10000));
+        .then(message => message.delete(10000));
     } else {
       message.channel.send({
         embed: {
@@ -114,15 +114,15 @@ function doDeposit(message, tipper) {
             {
               name: '__User__',
               value: '<@' + message.author.id + '>',
-              inline: false,
+              inline: false
             },
             {
               name: '__Address__',
               value: '**' + address + '**',
-              inline: false,
-            },
-          ],
-        },
+              inline: false
+            }
+          ]
+        }
       });
     }
   });
@@ -140,29 +140,29 @@ function doWithdraw(message, tipper, words, helpmsg) {
   if (amount === null) {
     message
       .reply(
-        "I don't know how to withdraw that much Uniform Fiscal Object (UFO)...",
+        "I don't know how to withdraw that much Uniform Fiscal Object (UFO)..."
       )
-      .then((message) => message.delete(10000));
+      .then(message => message.delete(10000));
     return;
   }
 
-  ufo.getBalance(tipper, 1, function (err, balance) {
+  ufo.getBalance(tipper, 1, function(err, balance) {
     if (err) {
       message
         .reply('Error getting Uniform Fiscal Object (UFO) balance.')
-        .then((message) => message.delete(10000));
+        .then(message => message.delete(10000));
     } else {
       if (Number(amount) + Number(paytxfee) > Number(balance)) {
         message.channel.send(
           'Please leave atleast ' +
             paytxfee +
-            ' Uniform Fiscal Object (UFO) for transaction fees!',
+            ' Uniform Fiscal Object (UFO) for transaction fees!'
         );
         return;
       }
-      ufo.sendFrom(tipper, address, Number(amount), function (err, txId) {
+      ufo.sendFrom(tipper, address, Number(amount), function(err, txId) {
         if (err) {
-          message.reply(err.message).then((message) => message.delete(10000));
+          message.reply(err.message).then(message => message.delete(10000));
         } else {
           message.channel.send({
             embed: {
@@ -173,30 +173,30 @@ function doWithdraw(message, tipper, words, helpmsg) {
                 {
                   name: '__Sender__',
                   value: '<@' + message.author.id + '>',
-                  inline: true,
+                  inline: true
                 },
                 {
                   name: '__Receiver__',
                   value: '**' + address + '**\n' + addyLink(address),
-                  inline: true,
+                  inline: true
                 },
                 {
                   name: '__txid__',
                   value: '**' + txId + '**\n' + txLink(txId),
-                  inline: false,
+                  inline: false
                 },
                 {
                   name: '__Amount__',
                   value: '**' + amount.toString() + '**',
-                  inline: true,
+                  inline: true
                 },
                 {
                   name: '__Fee__',
                   value: '**' + paytxfee.toString() + '**',
-                  inline: true,
-                },
-              ],
-            },
+                  inline: true
+                }
+              ]
+            }
           });
         }
       });
@@ -221,21 +221,21 @@ function doTip(bot, message, tipper, words, helpmsg) {
   if (amount === null) {
     message
       .reply("I don't know how to tip that much Uniform Fiscal Object (UFO)...")
-      .then((message) => message.delete(10000));
+      .then(message => message.delete(10000));
     return;
   }
 
-  ufo.getBalance(tipper, 1, function (err, balance) {
+  ufo.getBalance(tipper, 1, function(err, balance) {
     if (err) {
       message
         .reply('Error getting Uniform Fiscal Object (UFO) balance.')
-        .then((message) => message.delete(10000));
+        .then(message => message.delete(10000));
     } else {
       if (Number(amount) + Number(paytxfee) > Number(balance)) {
         message.channel.send(
           'Please leave atleast ' +
             paytxfee +
-            ' Uniform Fiscal Object (UFO) for transaction fees!',
+            ' Uniform Fiscal Object (UFO) for transaction fees!'
         );
         return;
       }
@@ -243,7 +243,7 @@ function doTip(bot, message, tipper, words, helpmsg) {
       if (!message.mentions.users.first()) {
         message
           .reply('Sorry, I could not find a user in your tip...')
-          .then((message) => message.delete(10000));
+          .then(message => message.delete(10000));
         return;
       }
       if (message.mentions.users.first().id) {
@@ -253,157 +253,152 @@ function doTip(bot, message, tipper, words, helpmsg) {
           tipper,
           message.mentions.users.first().id.replace('!', ''),
           amount,
-          prv,
+          prv
         );
       } else {
         message
           .reply('Sorry, I could not find a user in your tip...')
-          .then((message) => message.delete(10000));
+          .then(message => message.delete(10000));
       }
     }
   });
 }
 
 function sendUFO(bot, message, tipper, recipient, amount, privacyFlag) {
-  getAddress(recipient.toString(), function (err, address) {
+  getAddress(recipient.toString(), function(err, address) {
     if (err) {
-      message.reply(err.message).then((message) => message.delete(10000));
+      message.reply(err.message).then(message => message.delete(10000));
     } else {
-      ufo.sendFrom(
-        tipper,
-        address,
-        Number(amount),
-        1,
-        null,
-        null,
-        function (err, txId) {
-          if (err) {
-            message.reply(err.message).then((message) => message.delete(10000));
-          } else {
-            if (privacyFlag) {
-              let userProfile = message.guild.members.get(recipient); // ⚡ Bolt: O(1) direct ID lookup vs O(N) linear search;
-              userProfile.user.send({
-                embed: {
-                  title:
-                    '**:money_with_wings::moneybag:Uniform Fiscal Object (UFO) Transaction Completed!:moneybag::money_with_wings:**',
-                  color: 1363892,
-                  fields: [
-                    {
-                      name: '__Sender__',
-                      value: 'Private Tipper',
-                      inline: true,
-                    },
-                    {
-                      name: '__Receiver__',
-                      value: '<@' + recipient + '>',
-                      inline: true,
-                    },
-                    {
-                      name: '__txid__',
-                      value: '**' + txId + '**\n' + txLink(txId),
-                      inline: false,
-                    },
-                    {
-                      name: '__Amount__',
-                      value: '**' + amount.toString() + '**',
-                      inline: true,
-                    },
-                    {
-                      name: '__Fee__',
-                      value: '**' + paytxfee.toString() + '**',
-                      inline: true,
-                    },
-                  ],
-                },
-              });
-              message.author.send({
-                embed: {
-                  title:
-                    '**:money_with_wings::moneybag:Uniform Fiscal Object (UFO) Transaction Completed!:moneybag::money_with_wings:**',
-                  color: 1363892,
-                  fields: [
-                    {
-                      name: '__Sender__',
-                      value: '<@' + message.author.id + '>',
-                      inline: true,
-                    },
-                    {
-                      name: '__Receiver__',
-                      value: '<@' + recipient + '>',
-                      inline: true,
-                    },
-                    {
-                      name: '__txid__',
-                      value: '**' + txId + '**\n' + txLink(txId),
-                      inline: false,
-                    },
-                    {
-                      name: '__Amount__',
-                      value: '**' + amount.toString() + '**',
-                      inline: true,
-                    },
-                    {
-                      name: '__Fee__',
-                      value: '**' + paytxfee.toString() + '**',
-                      inline: true,
-                    },
-                  ],
-                },
-              });
-              if (message.content.startsWith('!tipufo private ')) {
-                message.delete(1000); //Supposed to delete message
+      ufo.sendFrom(tipper, address, Number(amount), 1, null, null, function(
+        err,
+        txId
+      ) {
+        if (err) {
+          message.reply(err.message).then(message => message.delete(10000));
+        } else {
+          if (privacyFlag) {
+            let userProfile = message.guild.members.get(recipient); // ⚡ Bolt: O(1) direct ID lookup vs O(N) linear search;
+            userProfile.user.send({
+              embed: {
+                title:
+                  '**:money_with_wings::moneybag:Uniform Fiscal Object (UFO) Transaction Completed!:moneybag::money_with_wings:**',
+                color: 1363892,
+                fields: [
+                  {
+                    name: '__Sender__',
+                    value: 'Private Tipper',
+                    inline: true
+                  },
+                  {
+                    name: '__Receiver__',
+                    value: '<@' + recipient + '>',
+                    inline: true
+                  },
+                  {
+                    name: '__txid__',
+                    value: '**' + txId + '**\n' + txLink(txId),
+                    inline: false
+                  },
+                  {
+                    name: '__Amount__',
+                    value: '**' + amount.toString() + '**',
+                    inline: true
+                  },
+                  {
+                    name: '__Fee__',
+                    value: '**' + paytxfee.toString() + '**',
+                    inline: true
+                  }
+                ]
               }
-            } else {
-              message.channel.send({
-                embed: {
-                  title:
-                    '**:money_with_wings::moneybag:Uniform Fiscal Object (UFO) Transaction Completed!:moneybag::money_with_wings:**',
-                  color: 1363892,
-                  fields: [
-                    {
-                      name: '__Sender__',
-                      value: '<@' + message.author.id + '>',
-                      inline: true,
-                    },
-                    {
-                      name: '__Receiver__',
-                      value: '<@' + recipient + '>',
-                      inline: true,
-                    },
-                    {
-                      name: '__txid__',
-                      value: '**' + txId + '**\n' + txLink(txId),
-                      inline: false,
-                    },
-                    {
-                      name: '__Amount__',
-                      value: '**' + amount.toString() + '**',
-                      inline: true,
-                    },
-                    {
-                      name: '__Fee__',
-                      value: '**' + paytxfee.toString() + '**',
-                      inline: true,
-                    },
-                  ],
-                },
-              });
+            });
+            message.author.send({
+              embed: {
+                title:
+                  '**:money_with_wings::moneybag:Uniform Fiscal Object (UFO) Transaction Completed!:moneybag::money_with_wings:**',
+                color: 1363892,
+                fields: [
+                  {
+                    name: '__Sender__',
+                    value: '<@' + message.author.id + '>',
+                    inline: true
+                  },
+                  {
+                    name: '__Receiver__',
+                    value: '<@' + recipient + '>',
+                    inline: true
+                  },
+                  {
+                    name: '__txid__',
+                    value: '**' + txId + '**\n' + txLink(txId),
+                    inline: false
+                  },
+                  {
+                    name: '__Amount__',
+                    value: '**' + amount.toString() + '**',
+                    inline: true
+                  },
+                  {
+                    name: '__Fee__',
+                    value: '**' + paytxfee.toString() + '**',
+                    inline: true
+                  }
+                ]
+              }
+            });
+            if (message.content.startsWith('!tipufo private ')) {
+              message.delete(1000); //Supposed to delete message
             }
+          } else {
+            message.channel.send({
+              embed: {
+                title:
+                  '**:money_with_wings::moneybag:Uniform Fiscal Object (UFO) Transaction Completed!:moneybag::money_with_wings:**',
+                color: 1363892,
+                fields: [
+                  {
+                    name: '__Sender__',
+                    value: '<@' + message.author.id + '>',
+                    inline: true
+                  },
+                  {
+                    name: '__Receiver__',
+                    value: '<@' + recipient + '>',
+                    inline: true
+                  },
+                  {
+                    name: '__txid__',
+                    value: '**' + txId + '**\n' + txLink(txId),
+                    inline: false
+                  },
+                  {
+                    name: '__Amount__',
+                    value: '**' + amount.toString() + '**',
+                    inline: true
+                  },
+                  {
+                    name: '__Fee__',
+                    value: '**' + paytxfee.toString() + '**',
+                    inline: true
+                  }
+                ]
+              }
+            });
           }
-        },
-      );
+        }
+      });
     }
   });
 }
 
 function getAddress(userId, cb) {
-  ufo.getAddressesByAccount(userId, function (err, addresses) {
+  ufo.getAddressesByAccount(userId, function(err, addresses) {
     if (err) {
       cb(err);
     } else if (addresses.length > 0) {
       cb(null, addresses[0]);
     } else {
-      ufo.getNewAddress(userId, function (err, address) {
+      ufo.getNewAddress(userId, function(err, address) {
         if (err) {
           cb(err);
         } else {

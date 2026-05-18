@@ -153,16 +153,28 @@ function checkMessageForCommand(msg, isEdit) {
           return;
         });
     }
-    var cmdTxt = msg.content.split(' ')[0].substring(config.prefix.length);
-    var suffix = msg.content.substring(
-      cmdTxt.length + config.prefix.length + 1
-    ); //add one for the ! and one for the space
+    // ⚡ Bolt: Use indexOf instead of split() to avoid unnecessary O(N) array allocation in the message parsing hot path
+    var firstSpaceIdx = msg.content.indexOf(' ');
+    var cmdTxt = firstSpaceIdx > -1
+      ? msg.content.substring(config.prefix.length, firstSpaceIdx)
+      : msg.content.substring(config.prefix.length);
+    var suffix = firstSpaceIdx > -1
+      ? msg.content.substring(firstSpaceIdx + 1)
+      : '';
+
     if (msg.isMentioned(bot.user)) {
       try {
-        cmdTxt = msg.content.split(' ')[1];
-        suffix = msg.content.substring(
-          bot.user.mention().length + cmdTxt.length + config.prefix.length + 1
-        );
+        // Skip over the bot mention, find the command, and its suffix
+        var secondSpaceIdx = msg.content.indexOf(' ', firstSpaceIdx + 1);
+        if (firstSpaceIdx === -1) {
+            throw new Error('no command');
+        }
+        cmdTxt = secondSpaceIdx > -1
+          ? msg.content.substring(firstSpaceIdx + 1, secondSpaceIdx)
+          : msg.content.substring(firstSpaceIdx + 1);
+        suffix = secondSpaceIdx > -1
+          ? msg.content.substring(secondSpaceIdx + 1)
+          : '';
       } catch (e) {
         //no command
         msg.channel.send('Yes?');
