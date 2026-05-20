@@ -189,12 +189,16 @@ function checkMessageForCommand(msg, isEdit) {
       } catch (e) {
         var msgTxt = 'command ' + cmdTxt + ' failed :(';
         var linebreak = '\n-------------------------------------------------\n';
-        if (config.debug) {
-          msgTxt += '\n' + e.stack;
-        }
         var time = moment()
           .tz('America/Los_Angeles')
           .format('MM-DD-YYYY hh:mm a');
+        if (config.debug) {
+          console.error(
+            '[' + time + ' PST][' + pm2Name + '] Command execution error:\n' + e.stack
+          );
+          // 🛡️ Sentinel: Never leak stack traces to external channels
+          msgTxt += '\nAn internal error occurred. Check the logs for details.';
+        }
         bot.channels
           .get(logChannel)
           .send('[' + time + ' PST][' + pm2Name + '] ' + msgTxt + linebreak);
