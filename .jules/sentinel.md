@@ -1,0 +1,4 @@
+## 2024-05-20 - Prevented Stack Trace Leakage to Log Channels
+**Vulnerability:** The application was exposing full error stack traces to a Discord log channel whenever `config.debug` was true. This leaked internal application details, file paths, and dependency paths.
+**Learning:** Even though the stack traces were conditional on a debug configuration, relying on configurations to hide sensitive information from external platforms is a weak security posture. Discord log channels can have multiple viewers, and debug mode may be accidentally left on in production environments.
+**Prevention:** Never append `e.stack` to output that is sent to an external service or user. Instead, log the detailed stack trace to secure internal application logs (e.g., standard output captured by PM2, or a dedicated logging system) and provide a sanitized, generic error message to external channels.
