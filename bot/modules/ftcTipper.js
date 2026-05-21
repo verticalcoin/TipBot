@@ -158,7 +158,10 @@ function doWithdraw(message, tipper, words, helpmsg) {
       }
       ftc.sendFrom(tipper, address, Number(amount), function (err, txId) {
         if (err) {
-          message.reply(err.message).then((message) => message.delete(10000));
+          message
+            .reply('An error occurred.')
+            .then((message) => message.delete(10000))
+            .catch(console.error);
         } else {
           message.channel.send({
             embed: {
@@ -263,7 +266,10 @@ function doTip(bot, message, tipper, words, helpmsg) {
 function sendFTC(bot, message, tipper, recipient, amount, privacyFlag) {
   getAddress(recipient.toString(), function (err, address) {
     if (err) {
-      message.reply(err.message).then((message) => message.delete(10000));
+      message
+        .reply('An error occurred.')
+        .then((message) => message.delete(10000))
+        .catch(console.error);
     } else {
       ftc.sendFrom(
         tipper,
@@ -274,7 +280,10 @@ function sendFTC(bot, message, tipper, recipient, amount, privacyFlag) {
         null,
         function (err, txId) {
           if (err) {
-            message.reply(err.message).then((message) => message.delete(10000));
+            message
+              .reply('An error occurred.')
+              .then((message) => message.delete(10000))
+              .catch(console.error);
           } else {
             if (privacyFlag) {
               let userProfile = message.guild.members.get(recipient); // ⚡ Bolt: O(1) direct ID lookup vs O(N) linear search;
