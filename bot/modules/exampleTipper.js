@@ -72,7 +72,7 @@ function doHelp(message, helpmsg) {
 function doBalance(message, tipper) {
   ltc.getBalance(tipper, 1, function(err, balance) {
     if (err) {
-      message.reply('Error getting Litecoin (LTC) balance.').then(message => message.delete(10000));
+      message.reply('Error getting Litecoin (LTC) balance.').then(message => message.delete(10000).catch(console.error));
     } else {
     message.channel.send({ embed: {
     title: '**:bank::money_with_wings::moneybag:Litecoin (LTC) Balance!:moneybag::money_with_wings::bank:**',
@@ -97,7 +97,7 @@ function doBalance(message, tipper) {
 function doDeposit(message, tipper) {
   getAddress(tipper, function(err, address) {
     if (err) {
-      message.reply('Error getting your Litecoin (LTC) deposit address.').then(message => message.delete(10000));
+      message.reply('Error getting your Litecoin (LTC) deposit address.').then(message => message.delete(10000).catch(console.error));
     } else {
     message.channel.send({ embed: {
     title: '**:bank::card_index::moneybag:Litecoin (LTC) Address!:moneybag::card_index::bank:**',
@@ -129,13 +129,13 @@ function doWithdraw(message, tipper, words, helpmsg) {
     amount = getValidatedAmount(words[3]);
 
   if (amount === null) {
-    message.reply("I don't know how to withdraw that much Litecoin (LTC)...").then(message => message.delete(10000));
+    message.reply("I don't know how to withdraw that much Litecoin (LTC)...").then(message => message.delete(10000).catch(console.error));
     return;
   }
 
   ltc.getBalance(tipper, 1, function(err, balance) {
     if (err) {
-      message.reply('Error getting Litecoin (LTC) balance.').then(message => message.delete(10000));
+      message.reply('Error getting Litecoin (LTC) balance.').then(message => message.delete(10000).catch(console.error));
     } else {
       if (Number(amount) + Number(paytxfee) > Number(balance)) {
         message.channel.send('Please leave atleast ' + paytxfee + ' Litecoin (LTC) for transaction fees!');
@@ -143,7 +143,7 @@ function doWithdraw(message, tipper, words, helpmsg) {
       }
       ltc.sendFrom(tipper, address, Number(amount), function(err, txId) {
         if (err) {
-          message.reply(err.message).then(message => message.delete(10000));
+          message.reply('An internal error occurred. Please try again later.').then(message => message.delete(10000).catch(console.error));
         } else {
         message.channel.send({embed:{
         title: '**:outbox_tray::money_with_wings::moneybag:Litecoin (LTC) Transaction Completed!:moneybag::money_with_wings::outbox_tray:**',
@@ -197,13 +197,13 @@ function doTip(bot, message, tipper, words, helpmsg) {
   let amount = getValidatedAmount(words[amountOffset]);
 
   if (amount === null) {
-    message.reply("I don't know how to tip that much Litecoin (LTC)...").then(message => message.delete(10000));
+    message.reply("I don't know how to tip that much Litecoin (LTC)...").then(message => message.delete(10000).catch(console.error));
     return;
   }
 
   ltc.getBalance(tipper, 1, function(err, balance) {
     if (err) {
-      message.reply('Error getting Litecoin (LTC) balance.').then(message => message.delete(10000));
+      message.reply('Error getting Litecoin (LTC) balance.').then(message => message.delete(10000).catch(console.error));
     } else {
       if (Number(amount) + Number(paytxfee) > Number(balance)) {
         message.channel.send('Please leave atleast ' + paytxfee + ' Litecoin (LTC) for transaction fees!');
@@ -213,13 +213,13 @@ function doTip(bot, message, tipper, words, helpmsg) {
       if (!message.mentions.users.first()){
            message
             .reply('Sorry, I could not find a user in your tip...')
-            .then(message => message.delete(10000));
+            .then(message => message.delete(10000).catch(console.error));
             return;
           }
       if (message.mentions.users.first().id) {
         sendLTC(bot, message, tipper, message.mentions.users.first().id.replace('!', ''), amount, prv);
       } else {
-        message.reply('Sorry, I could not find a user in your tip...').then(message => message.delete(10000));
+        message.reply('Sorry, I could not find a user in your tip...').then(message => message.delete(10000).catch(console.error));
       }
     }
   });
@@ -228,11 +228,11 @@ function doTip(bot, message, tipper, words, helpmsg) {
 function sendLTC(bot, message, tipper, recipient, amount, privacyFlag) {
   getAddress(recipient.toString(), function(err, address) {
     if (err) {
-      message.reply(err.message).then(message => message.delete(10000));
+      message.reply('An internal error occurred. Please try again later.').then(message => message.delete(10000).catch(console.error));
     } else {
           ltc.sendFrom(tipper, address, Number(amount), 1, null, null, function(err, txId) {
               if (err) {
-                message.reply(err.message).then(message => message.delete(10000));
+                message.reply('An internal error occurred. Please try again later.').then(message => message.delete(10000).catch(console.error));
               } else {
                 if (privacyFlag) {
                   let userProfile = message.guild.members.get(recipient) // ⚡ Bolt: O(1) direct ID lookup vs O(N) linear search;
@@ -302,7 +302,7 @@ function sendLTC(bot, message, tipper, recipient, amount, privacyFlag) {
                   if (
                     message.content.startsWith('!tipltc private ')
                   ) {
-                    message.delete(1000); //Supposed to delete message
+                    message.delete(1000).catch(console.error); //Supposed to delete message
                   }
                 } else {
                   message.channel.send({ embed: {
