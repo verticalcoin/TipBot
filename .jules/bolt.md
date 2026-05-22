@@ -1,3 +1,3 @@
-## 2024-05-17 - O(N) lookup optimizations for Discord.js
-**Learning:** Found two O(N) operations in bot.js and module Tipper scripts when looking up members or guild count.
-**Action:** Replaced `bot.guilds.array().length` with `bot.guilds.size` (O(1)) and `message.guild.members.find('id', recipient)` with `message.guild.members.get(recipient)` (O(1)).
+## 2023-10-27 - Batching Discord API Calls
+**Learning:** Sending multiple individual messages via Discord.js is a significant performance bottleneck due to network latency and rate limits. However, Discord enforces a strict 2000-character limit per message.
+**Action:** Always batch multiple message sends into single payloads to reduce API requests, but calculate string lengths carefully to split payloads that exceed 2000 characters.
