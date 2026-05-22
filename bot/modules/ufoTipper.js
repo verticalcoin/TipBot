@@ -71,7 +71,7 @@ function doBalance(message, tipper) {
     if (err) {
       message
         .reply('Error getting Uniform Fiscal Object (UFO) balance.')
-        .then((message) => message.delete(10000));
+        .then((message) => message.delete(10000).catch(console.error));
     } else {
       message.channel.send({
         embed: {
@@ -103,7 +103,7 @@ function doDeposit(message, tipper) {
         .reply(
           'Error getting your Uniform Fiscal Object (UFO) deposit address.',
         )
-        .then((message) => message.delete(10000));
+        .then((message) => message.delete(10000).catch(console.error));
     } else {
       message.channel.send({
         embed: {
@@ -142,7 +142,7 @@ function doWithdraw(message, tipper, words, helpmsg) {
       .reply(
         "I don't know how to withdraw that much Uniform Fiscal Object (UFO)...",
       )
-      .then((message) => message.delete(10000));
+      .then((message) => message.delete(10000).catch(console.error));
     return;
   }
 
@@ -150,7 +150,7 @@ function doWithdraw(message, tipper, words, helpmsg) {
     if (err) {
       message
         .reply('Error getting Uniform Fiscal Object (UFO) balance.')
-        .then((message) => message.delete(10000));
+        .then((message) => message.delete(10000).catch(console.error));
     } else {
       if (Number(amount) + Number(paytxfee) > Number(balance)) {
         message.channel.send(
@@ -162,7 +162,9 @@ function doWithdraw(message, tipper, words, helpmsg) {
       }
       ufo.sendFrom(tipper, address, Number(amount), function (err, txId) {
         if (err) {
-          message.reply(err.message).then((message) => message.delete(10000));
+          message
+            .reply('An internal error occurred. Please try again later.')
+            .then((message) => message.delete(10000).catch(console.error));
         } else {
           message.channel.send({
             embed: {
@@ -221,7 +223,7 @@ function doTip(bot, message, tipper, words, helpmsg) {
   if (amount === null) {
     message
       .reply("I don't know how to tip that much Uniform Fiscal Object (UFO)...")
-      .then((message) => message.delete(10000));
+      .then((message) => message.delete(10000).catch(console.error));
     return;
   }
 
@@ -229,7 +231,7 @@ function doTip(bot, message, tipper, words, helpmsg) {
     if (err) {
       message
         .reply('Error getting Uniform Fiscal Object (UFO) balance.')
-        .then((message) => message.delete(10000));
+        .then((message) => message.delete(10000).catch(console.error));
     } else {
       if (Number(amount) + Number(paytxfee) > Number(balance)) {
         message.channel.send(
@@ -243,7 +245,7 @@ function doTip(bot, message, tipper, words, helpmsg) {
       if (!message.mentions.users.first()) {
         message
           .reply('Sorry, I could not find a user in your tip...')
-          .then((message) => message.delete(10000));
+          .then((message) => message.delete(10000).catch(console.error));
         return;
       }
       if (message.mentions.users.first().id) {
@@ -258,7 +260,7 @@ function doTip(bot, message, tipper, words, helpmsg) {
       } else {
         message
           .reply('Sorry, I could not find a user in your tip...')
-          .then((message) => message.delete(10000));
+          .then((message) => message.delete(10000).catch(console.error));
       }
     }
   });
@@ -267,7 +269,9 @@ function doTip(bot, message, tipper, words, helpmsg) {
 function sendUFO(bot, message, tipper, recipient, amount, privacyFlag) {
   getAddress(recipient.toString(), function (err, address) {
     if (err) {
-      message.reply(err.message).then((message) => message.delete(10000));
+      message
+        .reply('An internal error occurred. Please try again later.')
+        .then((message) => message.delete(10000).catch(console.error));
     } else {
       ufo.sendFrom(
         tipper,
@@ -278,7 +282,9 @@ function sendUFO(bot, message, tipper, recipient, amount, privacyFlag) {
         null,
         function (err, txId) {
           if (err) {
-            message.reply(err.message).then((message) => message.delete(10000));
+            message
+              .reply('An internal error occurred. Please try again later.')
+              .then((message) => message.delete(10000).catch(console.error));
           } else {
             if (privacyFlag) {
               let userProfile = message.guild.members.get(recipient); // ⚡ Bolt: O(1) direct ID lookup vs O(N) linear search;
@@ -351,7 +357,7 @@ function sendUFO(bot, message, tipper, recipient, amount, privacyFlag) {
                 },
               });
               if (message.content.startsWith('!tipufo private ')) {
-                message.delete(1000); //Supposed to delete message
+                message.delete(1000).catch(console.error); //Supposed to delete message
               }
             } else {
               message.channel.send({
