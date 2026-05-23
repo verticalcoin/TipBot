@@ -1,0 +1,4 @@
+## 2024-05-18 - Fix Info Leak in Discord Generic Error Response
+**Vulnerability:** The application was passing `err.message` directly into `message.reply()` via the Discord API in all tipping modules (dogeTipper.js, rvnTipper.js, etc). This leaks potentially sensitive internal RPC error details (e.g. from bitcoind) directly to Discord users.
+**Learning:** This codebase uses dynamic plugins where each plugin implements similar tipping logic, including identical error handling blocks. When a bug like leaking RPC errors happens in one, it happens across all modules in the `bot/modules/` directory.
+**Prevention:** Always use generic, sanitized error messages (e.g., `'An error occurred.'`) when catching backend/RPC errors before presenting them to users. Log the actual `err.message` securely on the backend instead.
