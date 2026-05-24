@@ -19,12 +19,7 @@ exports.tipdoge = {
     paytxfee,
   process: async function (bot, msg, suffix) {
     let tipper = msg.author.id.replace('!', ''),
-      words = msg.content
-        .trim()
-        .split(' ')
-        .filter(function (n) {
-          return n !== '';
-        }),
+      words = msg.content.trim().split(/\s+/), // ⚡ Bolt: Optimized string splitting by using regex instead of split().filter()
       subcommand = words.length >= 2 ? words[1] : 'help',
       helpmsg =
         '__**Dogecoin (DOGE) Tipper**__\nTransaction Fees: **' +
