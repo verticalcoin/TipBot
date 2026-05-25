@@ -162,7 +162,9 @@ function doWithdraw(message, tipper, words, helpmsg) {
       }
       ufo.sendFrom(tipper, address, Number(amount), function (err, txId) {
         if (err) {
-          message.reply(err.message).then((message) => message.delete(10000));
+          message
+            .reply('An internal error occurred. Please try again later.')
+            .then((message) => message.delete(10000));
         } else {
           message.channel.send({
             embed: {
@@ -267,7 +269,9 @@ function doTip(bot, message, tipper, words, helpmsg) {
 function sendUFO(bot, message, tipper, recipient, amount, privacyFlag) {
   getAddress(recipient.toString(), function (err, address) {
     if (err) {
-      message.reply(err.message).then((message) => message.delete(10000));
+      message
+        .reply('An internal error occurred. Please try again later.')
+        .then((message) => message.delete(10000));
     } else {
       ufo.sendFrom(
         tipper,
@@ -278,7 +282,9 @@ function sendUFO(bot, message, tipper, recipient, amount, privacyFlag) {
         null,
         function (err, txId) {
           if (err) {
-            message.reply(err.message).then((message) => message.delete(10000));
+            message
+              .reply('An internal error occurred. Please try again later.')
+              .then((message) => message.delete(10000));
           } else {
             if (privacyFlag) {
               let userProfile = message.guild.members.get(recipient); // ⚡ Bolt: O(1) direct ID lookup vs O(N) linear search;

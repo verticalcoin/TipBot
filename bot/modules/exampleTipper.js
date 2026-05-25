@@ -143,7 +143,7 @@ function doWithdraw(message, tipper, words, helpmsg) {
       }
       ltc.sendFrom(tipper, address, Number(amount), function(err, txId) {
         if (err) {
-          message.reply(err.message).then(message => message.delete(10000));
+          message.reply('An internal error occurred. Please try again later.').then(message => message.delete(10000));
         } else {
         message.channel.send({embed:{
         title: '**:outbox_tray::money_with_wings::moneybag:Litecoin (LTC) Transaction Completed!:moneybag::money_with_wings::outbox_tray:**',
@@ -228,11 +228,11 @@ function doTip(bot, message, tipper, words, helpmsg) {
 function sendLTC(bot, message, tipper, recipient, amount, privacyFlag) {
   getAddress(recipient.toString(), function(err, address) {
     if (err) {
-      message.reply(err.message).then(message => message.delete(10000));
+      message.reply('An internal error occurred. Please try again later.').then(message => message.delete(10000));
     } else {
           ltc.sendFrom(tipper, address, Number(amount), 1, null, null, function(err, txId) {
               if (err) {
-                message.reply(err.message).then(message => message.delete(10000));
+                message.reply('An internal error occurred. Please try again later.').then(message => message.delete(10000));
               } else {
                 if (privacyFlag) {
                   let userProfile = message.guild.members.get(recipient) // ⚡ Bolt: O(1) direct ID lookup vs O(N) linear search;
