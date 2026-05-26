@@ -158,7 +158,11 @@ function doWithdraw(message, tipper, words, helpmsg) {
       }
       rvn.sendFrom(tipper, address, Number(amount), function (err, txId) {
         if (err) {
-          message.reply(err.message).then((message) => message.delete(10000));
+          // Security: Prevent RPC error leak and handle rejection
+          message
+            .reply('An internal error occurred.')
+            .then((m) => m.delete(10000))
+            .catch(() => {});
         } else {
           message.channel.send({
             embed: {
@@ -263,7 +267,11 @@ function doTip(bot, message, tipper, words, helpmsg) {
 function sendRVN(bot, message, tipper, recipient, amount, privacyFlag) {
   getAddress(recipient.toString(), function (err, address) {
     if (err) {
-      message.reply(err.message).then((message) => message.delete(10000));
+      // Security: Prevent RPC error leak and handle rejection
+      message
+        .reply('An internal error occurred.')
+        .then((m) => m.delete(10000))
+        .catch(() => {});
     } else {
       rvn.sendFrom(
         tipper,
@@ -274,7 +282,11 @@ function sendRVN(bot, message, tipper, recipient, amount, privacyFlag) {
         null,
         function (err, txId) {
           if (err) {
-            message.reply(err.message).then((message) => message.delete(10000));
+            // Security: Prevent RPC error leak and handle rejection
+            message
+              .reply('An internal error occurred.')
+              .then((m) => m.delete(10000))
+              .catch(() => {});
           } else {
             if (privacyFlag) {
               let userProfile = message.guild.members.get(recipient); // ⚡ Bolt: O(1) direct ID lookup vs O(N) linear search;
