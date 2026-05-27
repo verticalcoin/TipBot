@@ -18,13 +18,9 @@ exports.tipproton = {
     '**\n    **!tipproton** : Displays This Message\n    **!tipproton balance** : get your balance\n    **!tipproton deposit** : get address for your deposits\n    **!tipproton withdraw <ADDRESS> <AMOUNT>** : withdraw coins to specified address\n    **!tipproton <@user> <amount>** :mention a user with @ and then the amount to tip them\n    **!tipproton private <user> <amount>** : put private before Mentioning a user to tip them privately.\n\n    has a default txfee of ' +
     paytxfee,
   process: async function (bot, msg, suffix) {
+    // ⚡ Bolt: Optimize token extraction to avoid intermediate array allocations
     let tipper = msg.author.id.replace('!', ''),
-      words = msg.content
-        .trim()
-        .split(' ')
-        .filter(function (n) {
-          return n !== '';
-        }),
+      words = msg.content.match(/\S+/g) || [],
       subcommand = words.length >= 2 ? words[1] : 'help',
       helpmsg =
         '__**Proton (PROTON) Tipper**__\nTransaction Fees: **' +
