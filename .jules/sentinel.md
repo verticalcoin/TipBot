@@ -1,0 +1,4 @@
+## 2024-03-24 - [Information Disclosure] Fix leaking of RPC daemon error messages
+**Vulnerability:** Internal error messages from the bitcoind-rpc daemons were being passed directly to Discord users via `message.reply(err.message)`. This could expose internal IP addresses, port numbers, or specific RPC details of the crypto daemon configuration, giving attackers intelligence about the infrastructure.
+**Learning:** Returning unhandled or verbose exceptions directly to the front-end (Discord API) instead of providing generic localized error messages causes sensitive infrastructure information leakage.
+**Prevention:** Always log the verbose error (`console.error(err)`) internally for debugging purposes, but only return generic, sanitized error messages (e.g., "An error occurred while processing your request.") to the client.
