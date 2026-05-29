@@ -19,12 +19,9 @@ exports.tipproton = {
     paytxfee,
   process: async function (bot, msg, suffix) {
     let tipper = msg.author.id.replace('!', ''),
-      words = msg.content
-        .trim()
-        .split(' ')
-        .filter(function (n) {
-          return n !== '';
-        }),
+      words =
+        msg.content.match(/\S+/g) ||
+        [] /* ⚡ Bolt: Use regex match over split/filter to avoid intermediate array allocations */,
       subcommand = words.length >= 2 ? words[1] : 'help',
       helpmsg =
         '__**Proton (PROTON) Tipper**__\nTransaction Fees: **' +
