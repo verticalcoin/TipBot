@@ -18,13 +18,9 @@ exports.tipdoge = {
     '**\n    **!tipdoge** : Displays This Message\n    **!tipdoge balance** : get your balance\n    **!tipdoge deposit** : get address for your deposits\n    **!tipdoge withdraw <ADDRESS> <AMOUNT>** : withdraw coins to specified address\n    **!tipdoge <@user> <amount>** :mention a user with @ and then the amount to tip them\n    **!tipdoge private <user> <amount>** : put private before Mentioning a user to tip them privately.\n\n    has a default txfee of ' +
     paytxfee,
   process: async function (bot, msg, suffix) {
+    // ⚡ Bolt: regex match avoids intermediate array allocations
     let tipper = msg.author.id.replace('!', ''),
-      words = msg.content
-        .trim()
-        .split(' ')
-        .filter(function (n) {
-          return n !== '';
-        }),
+      words = msg.content.match(/\S+/g) || [],
       subcommand = words.length >= 2 ? words[1] : 'help',
       helpmsg =
         '__**Dogecoin (DOGE) Tipper**__\nTransaction Fees: **' +

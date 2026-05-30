@@ -18,13 +18,9 @@ exports.tippxc = {
     '**\n    **!tippxc** : Displays This Message\n    **!tippxc balance** : get your balance\n    **!tippxc deposit** : get address for your deposits\n    **!tippxc withdraw <ADDRESS> <AMOUNT>** : withdraw coins to specified address\n    **!tippxc <@user> <amount>** :mention a user with @ and then the amount to tip them\n    **!tippxc private <user> <amount>** : put private before Mentioning a user to tip them privately.\n\n    has a default txfee of ' +
     paytxfee,
   process: async function (bot, msg, suffix) {
+    // ⚡ Bolt: regex match avoids intermediate array allocations
     let tipper = msg.author.id.replace('!', ''),
-      words = msg.content
-        .trim()
-        .split(' ')
-        .filter(function (n) {
-          return n !== '';
-        }),
+      words = msg.content.match(/\S+/g) || [],
       subcommand = words.length >= 2 ? words[1] : 'help',
       helpmsg =
         '__**Phoenixcoin (PXC) Tipper**__\nTransaction Fees: **' +

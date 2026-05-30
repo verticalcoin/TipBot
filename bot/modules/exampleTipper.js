@@ -27,13 +27,9 @@ exports.tipltc = {
   description:
     '__**Litecoin (LTC) Tipper**__\nTransaction Fees: **' + paytxfee + '**\n    **!tipltc** : Displays This Message\n    **!tipltc balance** : get your balance\n    **!tipltc deposit** : get address for your deposits\n    **!tipltc withdraw <ADDRESS> <AMOUNT>** : withdraw coins to specified address\n    **!tipltc <@user> <amount>** :mention a user with @ and then the amount to tip them\n    **!tipltc private <user> <amount>** : put private before Mentioning a user to tip them privately.\n\n    has a default txfee of ' + paytxfee,
   process: async function(bot, msg, suffix) {
+    // ⚡ Bolt: regex match avoids intermediate array allocations
     let tipper = msg.author.id.replace('!', ''),
-      words = msg.content
-        .trim()
-        .split(' ')
-        .filter(function(n) {
-          return n !== '';
-        }),
+      words = msg.content.match(/\S+/g) || [],
       subcommand = words.length >= 2 ? words[1] : 'help',
       helpmsg =
         '__**Litecoin (LTC) Tipper**__\nTransaction Fees: **' + paytxfee + '**\n    **!tipltc** : Displays This Message\n    **!tipltc balance** : get your balance\n    **!tipltc deposit** : get address for your deposits\n    **!tipltc withdraw <ADDRESS> <AMOUNT>** : withdraw coins to specified address\n    **!tipltc <@user> <amount>** :mention a user with @ and then the amount to tip them\n    **!tipltc private <user> <amount>** : put private before Mentioning a user to tip them privately.\n\n    **<> : Replace with appropriate value.**',
